@@ -1,13 +1,9 @@
 package edu.ucsal.fiadopay.controller;
 
-import edu.ucsal.fiadopay.domain.Merchant;
 import edu.ucsal.fiadopay.dto.request.TokenRequest;
 import edu.ucsal.fiadopay.dto.response.TokenResponse;
-import edu.ucsal.fiadopay.repo.MerchantRepository;
-import edu.ucsal.fiadopay.service.MerchantService;
-import org.springframework.http.HttpStatus;
+import edu.ucsal.fiadopay.service.AuthService;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import lombok.RequiredArgsConstructor;
 import jakarta.validation.Valid;
 
@@ -16,16 +12,11 @@ import jakarta.validation.Valid;
 @RequiredArgsConstructor
 public class AuthController {
 
-  private final MerchantService merchants;
+  private final AuthService authService;
 
   @PostMapping("/token")
   public TokenResponse token(@RequestBody @Valid TokenRequest req) {
-    var merchant = merchants.findByClientId(req.client_id())
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
-    if (!merchant.getClientSecret().equals(req.client_secret())
-        || merchant.getStatus()!= Merchant.Status.ACTIVE) {
-      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-    }
-    return new TokenResponse("FAKE-"+merchant.getId(), "Bearer", 3600);
+    return authService.generateToken(req);
   }
+
 }

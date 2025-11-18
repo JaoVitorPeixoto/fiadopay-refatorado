@@ -30,47 +30,33 @@ import java.util.concurrent.CompletableFuture;
 
 @Service
 public class PaymentService {
-  private final MerchantRepository merchants;
+
+  private final AuthService authService;
   private final PaymentRepository payments;
+  private final MerchantRepository merchants;
   private final WebhookDeliveryRepository deliveries;
   private final ObjectMapper objectMapper;
   private final SignatureService signatureService;
   private final PaymentMapper paymentMapper;
 
+
   @Value("${fiadopay.webhook-secret}") String secret;
   @Value("${fiadopay.processing-delay-ms}") long delay;
   @Value("${fiadopay.failure-rate}") double failRate;
 
-  public PaymentService(SignatureService signatureService, PaymentMapper paymentMapper, MerchantRepository merchants, PaymentRepository payments, WebhookDeliveryRepository deliveries, ObjectMapper objectMapper) {
-    this.merchants = merchants;
+  public PaymentService(SignatureService signatureService, PaymentMapper paymentMapper, AuthService authService, MerchantRepository merchants, PaymentRepository payments, WebhookDeliveryRepository deliveries, ObjectMapper objectMapper) {
+    this.authService = authService;
     this.payments = payments;
+    this.merchants = merchants;
     this.deliveries = deliveries;
     this.objectMapper = objectMapper;
     this.signatureService = signatureService;
     this.paymentMapper = paymentMapper;
   }
 
-  private Merchant merchantFromAuth(String auth){
-    if (auth == null || !auth.startsWith("Bearer FAKE-")) {
-      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-    }
-    var raw = auth.substring("Bearer FAKE-".length());
-    long id;
-    try {
-      id = Long.parseLong(raw);
-    } catch (NumberFormatException ex) {
-      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-    }
-    var merchant = merchants.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
-    if (merchant.getStatus() != Merchant.Status.ACTIVE) {
-      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-    }
-    return merchant;
-  }
-
   @Transactional
   public PaymentResponse createPayment(String auth, String idemKey, PaymentRequest req){
-    var merchant = merchantFromAuth(auth);
+    var merchant = authService.merchantFromAuth(auth);
     var mid = merchant.getId();
 
     if (idemKey != null) {
@@ -116,7 +102,7 @@ public class PaymentService {
   }
 
   public Map<String,Object> refund(String auth, String paymentId){
-    var merchant = merchantFromAuth(auth);
+    var merchant = authService.merchantFromAuth(auth);
     var p = payments.findById(paymentId)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     if (!merchant.getId().equals(p.getMerchantId())) {

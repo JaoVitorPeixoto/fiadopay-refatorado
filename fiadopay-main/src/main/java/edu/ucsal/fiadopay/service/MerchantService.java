@@ -6,6 +6,7 @@ import edu.ucsal.fiadopay.dto.response.MerchantCreateResponse;
 import edu.ucsal.fiadopay.mapper.MerchantMapper;
 import edu.ucsal.fiadopay.repo.MerchantRepository;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -14,15 +15,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class MerchantService {
 
     private final MerchantRepository merchantRepository;
     private final MerchantMapper merchantMapper;
-
-    public MerchantService(MerchantRepository merchantRepository, MerchantMapper merchantMapper) {
-        this.merchantRepository = merchantRepository;
-        this.merchantMapper = merchantMapper;
-    }
 
     public MerchantCreateResponse create(MerchantCreateRequest dto) {
         if (existsByName(dto.name())) {
