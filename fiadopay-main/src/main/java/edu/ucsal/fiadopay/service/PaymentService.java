@@ -9,6 +9,7 @@ import edu.ucsal.fiadopay.domain.WebhookDelivery;
 import edu.ucsal.fiadopay.repo.MerchantRepository;
 import edu.ucsal.fiadopay.repo.PaymentRepository;
 import edu.ucsal.fiadopay.repo.WebhookDeliveryRepository;
+import edu.ucsal.fiadopay.service.signature.SignatureService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Instant;
-import java.util.Base64;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -33,16 +33,18 @@ public class PaymentService {
   private final PaymentRepository payments;
   private final WebhookDeliveryRepository deliveries;
   private final ObjectMapper objectMapper;
+  private final SignatureService signatureService;
 
   @Value("${fiadopay.webhook-secret}") String secret;
   @Value("${fiadopay.processing-delay-ms}") long delay;
   @Value("${fiadopay.failure-rate}") double failRate;
 
-  public PaymentService(MerchantRepository merchants, PaymentRepository payments, WebhookDeliveryRepository deliveries, ObjectMapper objectMapper) {
+  public PaymentService(SignatureService signatureService, MerchantRepository merchants, PaymentRepository payments, WebhookDeliveryRepository deliveries, ObjectMapper objectMapper) {
     this.merchants = merchants;
     this.payments = payments;
     this.deliveries = deliveries;
     this.objectMapper = objectMapper;
+    this.signatureService = signatureService;
   }
 
   private Merchant merchantFromAuth(String auth){
@@ -159,7 +161,7 @@ public class PaymentService {
       return;
     }
 
-    var signature = hmac(payload, secret);
+    var signature = signatureService.sign(payload, secret);
 
     var delivery = deliveries.save(WebhookDelivery.builder()
         .eventId("evt_"+UUID.randomUUID().toString().substring(0,8))
@@ -208,14 +210,6 @@ public class PaymentService {
         tryDeliver(deliveryId);
       }
     }
-  }
-
-  private static String hmac(String payload, String secret){
-    try {
-      var mac = javax.crypto.Mac.getInstance("HmacSHA256");
-      mac.init(new javax.crypto.spec.SecretKeySpec(secret.getBytes(), "HmacSHA256"));
-      return Base64.getEncoder().encodeToString(mac.doFinal(payload.getBytes()));
-    } catch (Exception e){ return ""; }
   }
 
   private PaymentResponse toResponse(Payment p){
