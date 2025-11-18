@@ -1,11 +1,10 @@
-package edu.ucsal.fiadopay.service;
+package edu.ucsal.fiadopay.service.merchant;
 
 import edu.ucsal.fiadopay.domain.Merchant;
 import edu.ucsal.fiadopay.dto.request.MerchantCreateRequest;
 import edu.ucsal.fiadopay.dto.response.MerchantCreateResponse;
 import edu.ucsal.fiadopay.mapper.MerchantMapper;
 import edu.ucsal.fiadopay.repo.MerchantRepository;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;

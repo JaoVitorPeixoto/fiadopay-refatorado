@@ -2,7 +2,7 @@ package edu.ucsal.fiadopay.controller;
 
 import edu.ucsal.fiadopay.dto.request.MerchantCreateRequest;
 import edu.ucsal.fiadopay.dto.response.MerchantCreateResponse;
-import edu.ucsal.fiadopay.service.MerchantService;
+import edu.ucsal.fiadopay.service.merchant.MerchantService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import lombok.RequiredArgsConstructor;

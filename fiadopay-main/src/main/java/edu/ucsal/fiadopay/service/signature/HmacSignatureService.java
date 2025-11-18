@@ -1,12 +1,10 @@
 package edu.ucsal.fiadopay.service.signature;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.Base64;
 
-@Service
-@Qualifier("hmac")
+@Service("hmac")
 public class HmacSignatureService implements SignatureService {
 
     @Override

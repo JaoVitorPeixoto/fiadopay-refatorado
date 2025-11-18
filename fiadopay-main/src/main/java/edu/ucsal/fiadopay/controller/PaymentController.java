@@ -3,7 +3,7 @@ package edu.ucsal.fiadopay.controller;
 import edu.ucsal.fiadopay.dto.request.PaymentRequest;
 import edu.ucsal.fiadopay.dto.request.RefundRequest;
 import edu.ucsal.fiadopay.dto.response.PaymentResponse;
-import edu.ucsal.fiadopay.service.PaymentService;
+import edu.ucsal.fiadopay.service.payment.PaymentService;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import lombok.RequiredArgsConstructor;

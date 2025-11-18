@@ -1,16 +1,17 @@
-package edu.ucsal.fiadopay.service;
+package edu.ucsal.fiadopay.service.payment;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.ucsal.fiadopay.dto.request.PaymentRequest;
 import edu.ucsal.fiadopay.dto.response.PaymentResponse;
-import edu.ucsal.fiadopay.domain.Merchant;
 import edu.ucsal.fiadopay.domain.Payment;
 import edu.ucsal.fiadopay.domain.WebhookDelivery;
 import edu.ucsal.fiadopay.mapper.PaymentMapper;
 import edu.ucsal.fiadopay.repo.MerchantRepository;
 import edu.ucsal.fiadopay.repo.PaymentRepository;
 import edu.ucsal.fiadopay.repo.WebhookDeliveryRepository;
+import edu.ucsal.fiadopay.service.auth.AuthService;
 import edu.ucsal.fiadopay.service.signature.SignatureService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -44,7 +45,7 @@ public class PaymentService {
   @Value("${fiadopay.processing-delay-ms}") long delay;
   @Value("${fiadopay.failure-rate}") double failRate;
 
-  public PaymentService(SignatureService signatureService, PaymentMapper paymentMapper, AuthService authService, MerchantRepository merchants, PaymentRepository payments, WebhookDeliveryRepository deliveries, ObjectMapper objectMapper) {
+  public PaymentService(@Qualifier("hmac") SignatureService signatureService, PaymentMapper paymentMapper, AuthService authService, MerchantRepository merchants, PaymentRepository payments, WebhookDeliveryRepository deliveries, ObjectMapper objectMapper) {
     this.authService = authService;
     this.payments = payments;
     this.merchants = merchants;

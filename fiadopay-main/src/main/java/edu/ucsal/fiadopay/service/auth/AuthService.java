@@ -1,4 +1,4 @@
-package edu.ucsal.fiadopay.service;
+package edu.ucsal.fiadopay.service.auth;
 
 import edu.ucsal.fiadopay.domain.Merchant;
 import edu.ucsal.fiadopay.dto.request.TokenRequest;
