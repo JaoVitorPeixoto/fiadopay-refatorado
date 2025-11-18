@@ -1,6 +1,7 @@
 package edu.ucsal.fiadopay.controller;
 
 import edu.ucsal.fiadopay.domain.Merchant;
+import edu.ucsal.fiadopay.dto.request.MerchantCreateRequest;
 import edu.ucsal.fiadopay.repo.MerchantRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +17,7 @@ public class MerchantAdminController {
   private final MerchantRepository merchants;
 
   @PostMapping
-  public Merchant create(@Valid @RequestBody MerchantCreateDTO dto) {
+  public Merchant create(@Valid @RequestBody MerchantCreateRequest dto) {
     if (merchants.existsByName(dto.name())) {
       throw new ResponseStatusException(HttpStatus.CONFLICT, "Merchant name already exists");
     }
