@@ -6,6 +6,7 @@ import edu.ucsal.fiadopay.dto.response.PaymentResponse;
 import edu.ucsal.fiadopay.domain.Merchant;
 import edu.ucsal.fiadopay.domain.Payment;
 import edu.ucsal.fiadopay.domain.WebhookDelivery;
+import edu.ucsal.fiadopay.mapper.PaymentMapper;
 import edu.ucsal.fiadopay.repo.MerchantRepository;
 import edu.ucsal.fiadopay.repo.PaymentRepository;
 import edu.ucsal.fiadopay.repo.WebhookDeliveryRepository;
@@ -34,17 +35,19 @@ public class PaymentService {
   private final WebhookDeliveryRepository deliveries;
   private final ObjectMapper objectMapper;
   private final SignatureService signatureService;
+  private final PaymentMapper paymentMapper;
 
   @Value("${fiadopay.webhook-secret}") String secret;
   @Value("${fiadopay.processing-delay-ms}") long delay;
   @Value("${fiadopay.failure-rate}") double failRate;
 
-  public PaymentService(SignatureService signatureService, MerchantRepository merchants, PaymentRepository payments, WebhookDeliveryRepository deliveries, ObjectMapper objectMapper) {
+  public PaymentService(SignatureService signatureService, PaymentMapper paymentMapper, MerchantRepository merchants, PaymentRepository payments, WebhookDeliveryRepository deliveries, ObjectMapper objectMapper) {
     this.merchants = merchants;
     this.payments = payments;
     this.deliveries = deliveries;
     this.objectMapper = objectMapper;
     this.signatureService = signatureService;
+    this.paymentMapper = paymentMapper;
   }
 
   private Merchant merchantFromAuth(String auth){
@@ -72,7 +75,7 @@ public class PaymentService {
 
     if (idemKey != null) {
       var existing = payments.findByIdempotencyKeyAndMerchantId(idemKey, mid);
-      if(existing.isPresent()) return toResponse(existing.get());
+      if(existing.isPresent()) return paymentMapper.toResponse(existing.get());
     }
 
     Double interest = null;
@@ -104,11 +107,11 @@ public class PaymentService {
 
     CompletableFuture.runAsync(() -> processAndWebhook(payment.getId()));
 
-    return toResponse(payment);
+    return paymentMapper.toResponse(payment);
   }
 
   public PaymentResponse getPayment(String id){
-    return toResponse(payments.findById(id)
+    return paymentMapper.toResponse(payments.findById(id)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND)));
   }
 
@@ -212,11 +215,4 @@ public class PaymentService {
     }
   }
 
-  private PaymentResponse toResponse(Payment p){
-    return new PaymentResponse(
-        p.getId(), p.getStatus().name(), p.getMethod(),
-        p.getAmount(), p.getInstallments(), p.getMonthlyInterest(),
-        p.getTotalWithInterest()
-    );
-  }
 }
