@@ -4,6 +4,7 @@ import edu.ucsal.fiadopay.domain.Merchant;
 import edu.ucsal.fiadopay.dto.request.TokenRequest;
 import edu.ucsal.fiadopay.dto.response.TokenResponse;
 import edu.ucsal.fiadopay.repo.MerchantRepository;
+import edu.ucsal.fiadopay.service.MerchantService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -14,7 +15,8 @@ import jakarta.validation.Valid;
 @RequestMapping("/fiadopay/auth")
 @RequiredArgsConstructor
 public class AuthController {
-  private final MerchantRepository merchants;
+
+  private final MerchantService merchants;
 
   @PostMapping("/token")
   public TokenResponse token(@RequestBody @Valid TokenRequest req) {
