@@ -36,71 +36,69 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public class PaymentService {
 
-  private final AuthService authService;
-  private final PaymentCreator creator;
-  private final PaymentProcessor processor;
-  private final WebhookDeliveryService dispatcher;
-  private final PaymentMapper mapper;
+    private final AuthService authService;
+    private final PaymentCreator creator;
+    private final PaymentProcessor processor;
+    private final WebhookDeliveryService dispatcher;
+    private final PaymentMapper mapper;
 
-  @Value("${fiadopay.webhook-secret}") String secret;
-  @Value("${fiadopay.processing-delay-ms}") long delay;
-  @Value("${fiadopay.failure-rate}") double failRate;
+    @Value("${fiadopay.webhook-secret}") String secret;
+    @Value("${fiadopay.processing-delay-ms}") long delay;
+    @Value("${fiadopay.failure-rate}") double failRate;
 
-  public PaymentService(AuthService authService, PaymentCreator creator,
-          PaymentProcessor processor, WebhookDeliveryService dispatcher,
-          PaymentMapper mapper) {
-    this.authService = authService;
-    this.creator = creator;
-    this.processor = processor;
-    this.dispatcher = dispatcher;
-    this.mapper = mapper;
-  }
+    @Transactional
+    public PaymentResponse createPayment(String auth, String idemKey, PaymentRequest req) {
 
-  @Transactional
-  public PaymentResponse createPayment(String auth, String idemKey, PaymentRequest req) {
+        var merchant = authService.merchantFromAuth(auth);
 
-      var merchant = authService.merchantFromAuth(auth);
-      var payment = creator.create(idemKey, merchant.getId(), req);
+        var payment = creator.create(idemKey,merchant.getId(),req);
 
-      CompletableFuture.runAsync(() -> {
-          var processed = processor.process(payment.getId());
-          if (processed != null)
-              dispatcher.dispatch(processed);
-      });
+        CompletableFuture.runAsync(() -> {
+            var processed = processor.process(payment.getId());
+            if (processed != null)
+                dispatcher.deliver(merchant, processed);
+        });
 
-      return mapper.toResponse(payment);
-  }
-
-  public PaymentResponse getPayment(String id) {
-      return mapper.toResponse(creator.getPayments().findById(id)
-          .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND)));
-  }
-  
-  public Map<String,Object> refund(String auth, String paymentId){
-    var merchant = authService.merchantFromAuth(auth);
-    var p = payments.findById(paymentId)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-    if (!merchant.getId().equals(p.getMerchantId())) {
-      throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        return mapper.toResponse(payment);
     }
-    p.setStatus(Payment.Status.REFUNDED);
-    p.setUpdatedAt(Instant.now());
-    payments.save(p);
-    webhookDeliveryService.deliver(merchant, p);
-    return Map.of("id","ref_"+UUID.randomUUID(),"status","PENDING");
-  }
 
-  private void processAndWebhook(String paymentId, Merchant merchant){
+    public PaymentResponse getPayment(String id) {
+        return mapper.toResponse(
+                creator.getPayments().findById(id)
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND))
+        );
+    }
+
+    public Map<String,Object> refund(String auth, String paymentId){
+        var merchant = authService.merchantFromAuth(auth);
+
+        var p = creator.getPayments().findById(paymentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        if (!merchant.getId().equals(p.getMerchantId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+
+        p.setStatus(Payment.Status.REFUNDED);
+        p.setUpdatedAt(Instant.now());
+        creator.getPayments().save(p);
+
+        dispatcher.deliver(merchant, p);
+
+        return Map.of("id","ref_"+UUID.randomUUID(),"status","PENDING");
+    }
+
+private void processAndWebhook(String paymentId, Merchant merchant){
     try { Thread.sleep(delay); } catch (InterruptedException ignored) {}
-    var p = payments.findById(paymentId).orElse(null);
-    if (p==null || merchant==null) return;
+
+    var p = creator.getPayments().findById(paymentId).orElse(null);
+    if (p == null || merchant == null) return;
 
     var approved = Math.random() > failRate;
     p.setStatus(approved ? Payment.Status.APPROVED : Payment.Status.DECLINED);
     p.setUpdatedAt(Instant.now());
-    payments.save(p);
+    creator.getPayments().save(p);
 
-    webhookDeliveryService.deliver(merchant, p);
-  }
-
+    dispatcher.deliver(merchant, p);
+    }
 }
