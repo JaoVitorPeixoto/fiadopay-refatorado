@@ -42,7 +42,6 @@ public class PaymentService {
     private final WebhookDeliveryService dispatcher;
     private final PaymentMapper mapper;
 
-    @Value("${fiadopay.webhook-secret}") String secret;
     @Value("${fiadopay.processing-delay-ms}") long delay;
     @Value("${fiadopay.failure-rate}") double failRate;
 

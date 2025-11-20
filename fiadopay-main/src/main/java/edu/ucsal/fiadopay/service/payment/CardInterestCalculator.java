@@ -1,6 +1,7 @@
 package edu.ucsal.fiadopay.service.payment;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import org.springframework.stereotype.Service;
 
@@ -8,7 +9,7 @@ import edu.ucsal.fiadopay.dto.request.PaymentRequest;
 
 @Service
 public class CardInterestCalculator implements InterestCalculator {
-	
+
 	@Override
     public boolean supports(PaymentRequest req) {
         return "CARD".equalsIgnoreCase(req.method()) &&
@@ -20,7 +21,9 @@ public class CardInterestCalculator implements InterestCalculator {
     public BigDecimal calculateTotal(PaymentRequest req) {
         var base = new BigDecimal("1.01");
         var factor = base.pow(req.installments());
-        return req.amount().multiply(factor).setScale(2);
+        return req.amount()
+                .multiply(factor)
+                .setScale(2, RoundingMode.HALF_UP);
     }
 
     @Override

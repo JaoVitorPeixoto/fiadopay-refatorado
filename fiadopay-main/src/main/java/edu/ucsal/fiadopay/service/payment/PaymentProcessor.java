@@ -1,12 +1,16 @@
 package edu.ucsal.fiadopay.service.payment;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import edu.ucsal.fiadopay.domain.Payment;
 import edu.ucsal.fiadopay.repo.PaymentRepository;
 
+import java.time.Instant;
+
 @Service
+@RequiredArgsConstructor
 public class PaymentProcessor {
 
     @Value("${fiadopay.processing-delay-ms}")
@@ -16,10 +20,6 @@ public class PaymentProcessor {
     private double failRate;
 
     private final PaymentRepository payments;
-
-    public PaymentProcessor(PaymentRepository payments) {
-        this.payments = payments;
-    }
 
     public Payment process(String paymentId) {
 

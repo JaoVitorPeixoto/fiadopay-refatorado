@@ -8,18 +8,15 @@ import edu.ucsal.fiadopay.domain.Payment;
 import edu.ucsal.fiadopay.dto.request.PaymentRequest;
 import edu.ucsal.fiadopay.mapper.PaymentMapper;
 import edu.ucsal.fiadopay.repo.PaymentRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
+@Component
+@RequiredArgsConstructor
 public class PaymentCreator {
 
     private final PaymentRepository payments;
-    private final PaymentMapper mapper;
     private final List<InterestCalculator> calculators;
-
-    public PaymentCreator(PaymentRepository payments, PaymentMapper mapper, List<InterestCalculator> calculators) {
-        this.payments = payments;
-        this.mapper = mapper;
-        this.calculators = calculators;
-    }
 
     public PaymentRepository getPayments() {
         return payments;
