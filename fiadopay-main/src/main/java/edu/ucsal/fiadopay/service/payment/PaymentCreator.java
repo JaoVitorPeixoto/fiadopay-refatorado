@@ -10,8 +10,8 @@ import edu.ucsal.fiadopay.mapper.PaymentMapper;
 import edu.ucsal.fiadopay.repo.PaymentRepository;
 
 public class PaymentCreator {
-	
-	private final PaymentRepository payments;
+
+    private final PaymentRepository payments;
     private final PaymentMapper mapper;
     private final List<InterestCalculator> calculators;
 
@@ -21,10 +21,14 @@ public class PaymentCreator {
         this.calculators = calculators;
     }
 
-    public Payment create(Long idemKey, String merchantId, PaymentRequest req) {
+    public PaymentRepository getPayments() {
+        return payments;
+    }
+
+    public Payment create(String idemKey, Long merchantId, PaymentRequest req) {
 
         if (idemKey != null) {
-            var existing = payments.findByIdempotencyKeyAndMerchantId(merchantId, idemKey);
+            var existing = payments.findByIdempotencyKeyAndMerchantId(idemKey, merchantId);
             if (existing.isPresent()) return existing.get();
         }
 
@@ -33,7 +37,7 @@ public class PaymentCreator {
                 .findFirst()
                 .orElseThrow();
 
-        var payment = Payment.builder()
+    var payment = Payment.builder()
             .id("pay_" + UUID.randomUUID().toString().substring(0, 8))
             .merchantId(merchantId)
             .method(req.method().toUpperCase())
