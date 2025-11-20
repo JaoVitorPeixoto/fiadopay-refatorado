@@ -39,7 +39,7 @@ public class PaymentService {
   private final AuthService authService;
   private final PaymentCreator creator;
   private final PaymentProcessor processor;
-  private final WebhookDispatcher dispatcher;
+  private final WebhookDeliveryService dispatcher;
   private final PaymentMapper mapper;
 
   @Value("${fiadopay.webhook-secret}") String secret;
@@ -47,7 +47,7 @@ public class PaymentService {
   @Value("${fiadopay.failure-rate}") double failRate;
 
   public PaymentService(AuthService authService, PaymentCreator creator,
-          PaymentProcessor processor, WebhookDispatcher dispatcher,
+          PaymentProcessor processor, WebhookDeliveryService dispatcher,
           PaymentMapper mapper) {
     this.authService = authService;
     this.creator = creator;
