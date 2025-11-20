@@ -37,60 +37,45 @@ import java.util.concurrent.CompletableFuture;
 public class PaymentService {
 
   private final AuthService authService;
-  private final PaymentRepository payments;
-  private final WebhookDeliveryService webhookDeliveryService;
-  private final PaymentMapper paymentMapper;
+  private final PaymentCreator creator;
+  private final PaymentProcessor processor;
+  private final WebhookDispatcher dispatcher;
+  private final PaymentMapper mapper;
 
+  @Value("${fiadopay.webhook-secret}") String secret;
   @Value("${fiadopay.processing-delay-ms}") long delay;
   @Value("${fiadopay.failure-rate}") double failRate;
 
+  public PaymentService(AuthService authService, PaymentCreator creator,
+          PaymentProcessor processor, WebhookDispatcher dispatcher,
+          PaymentMapper mapper) {
+    this.authService = authService;
+    this.creator = creator;
+    this.processor = processor;
+    this.dispatcher = dispatcher;
+    this.mapper = mapper;
+  }
+
   @Transactional
-  public PaymentResponse createPayment(String auth, String idemKey, PaymentRequest req){
-    var merchant = authService.merchantFromAuth(auth);
-    var mid = merchant.getId();
+  public PaymentResponse createPayment(String auth, String idemKey, PaymentRequest req) {
 
-    if (idemKey != null) {
-      var existing = payments.findByIdempotencyKeyAndMerchantId(idemKey, mid);
-      if(existing.isPresent()) return paymentMapper.toResponse(existing.get());
-    }
+      var merchant = authService.merchantFromAuth(auth);
+      var payment = creator.create(idemKey, merchant.getId(), req);
 
-    Double interest = null;
-    BigDecimal total = req.amount();
-    if ("CARD".equalsIgnoreCase(req.method()) && req.installments()!=null && req.installments()>1){
-      interest = 1.0; // 1%/mês
-      var base = new BigDecimal("1.01");
-      var factor = base.pow(req.installments());
-      total = req.amount().multiply(factor).setScale(2, RoundingMode.HALF_UP);
-    }
+      CompletableFuture.runAsync(() -> {
+          var processed = processor.process(payment.getId());
+          if (processed != null)
+              dispatcher.dispatch(processed);
+      });
 
-    var payment = Payment.builder()
-        .id("pay_"+UUID.randomUUID().toString().substring(0,8))
-        .merchantId(mid)
-        .method(req.method().toUpperCase())
-        .amount(req.amount())
-        .currency(req.currency())
-        .installments(req.installments()==null?1:req.installments())
-        .monthlyInterest(interest)
-        .totalWithInterest(total)
-        .status(Payment.Status.PENDING)
-        .createdAt(Instant.now())
-        .updatedAt(Instant.now())
-        .idempotencyKey(idemKey)
-        .metadataOrderId(req.metadataOrderId())
-        .build();
-
-    payments.save(payment);
-
-    CompletableFuture.runAsync(() -> processAndWebhook(payment.getId(), merchant));
-
-    return paymentMapper.toResponse(payment);
+      return mapper.toResponse(payment);
   }
 
-  public PaymentResponse getPayment(String id){
-    return paymentMapper.toResponse(payments.findById(id)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND)));
+  public PaymentResponse getPayment(String id) {
+      return mapper.toResponse(creator.getPayments().findById(id)
+          .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND)));
   }
-
+  
   public Map<String,Object> refund(String auth, String paymentId){
     var merchant = authService.merchantFromAuth(auth);
     var p = payments.findById(paymentId)
