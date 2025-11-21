@@ -1,5 +1,6 @@
 package edu.ucsal.fiadopay.controller;
 
+import edu.ucsal.fiadopay.annotation.Public;
 import edu.ucsal.fiadopay.dto.request.MerchantCreateRequest;
 import edu.ucsal.fiadopay.dto.response.MerchantCreateResponse;
 import edu.ucsal.fiadopay.service.merchant.MerchantService;
@@ -14,6 +15,7 @@ import jakarta.validation.Valid;
 public class MerchantAdminController {
   private final MerchantService merchantService;
 
+  @Public
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   public MerchantCreateResponse create(@Valid @RequestBody MerchantCreateRequest dto) {

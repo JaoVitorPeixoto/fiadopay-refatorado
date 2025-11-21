@@ -1,5 +1,6 @@
 package edu.ucsal.fiadopay.controller;
 
+import edu.ucsal.fiadopay.domain.Merchant;
 import edu.ucsal.fiadopay.dto.request.PaymentRequest;
 import edu.ucsal.fiadopay.dto.request.RefundRequest;
 import edu.ucsal.fiadopay.dto.response.PaymentResponse;
@@ -7,6 +8,7 @@ import edu.ucsal.fiadopay.service.payment.PaymentService;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import lombok.RequiredArgsConstructor;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -20,11 +22,11 @@ public class PaymentController {
   @PostMapping("/payments")
   @SecurityRequirement(name = "bearerAuth")
   public ResponseEntity<PaymentResponse> create(
-      @Parameter(hidden = true) @RequestHeader("Authorization") String auth,
-      @RequestHeader(value="Idempotency-Key", required=false) String idemKey,
-      @RequestBody @Valid PaymentRequest req
+    @RequestAttribute("merchant") Merchant merchant,
+    @RequestHeader(value="Idempotency-Key", required=false) String idemKey,
+    @RequestBody @Valid PaymentRequest req
   ) {
-    var resp = service.createPayment(auth, idemKey, req);
+    var resp = service.createPayment(merchant, idemKey, req);
     return ResponseEntity.status(HttpStatus.CREATED).body(resp);
   }
 
@@ -35,8 +37,10 @@ public class PaymentController {
 
   @PostMapping("/refunds")
   @SecurityRequirement(name = "bearerAuth")
-  public java.util.Map<String,Object> refund(@Parameter(hidden = true) @RequestHeader("Authorization") String auth,
-                                   @RequestBody @Valid RefundRequest body) {
-    return service.refund(auth, body.paymentId());
+  public java.util.Map<String,Object> refund(
+    @Parameter(hidden = true) 
+    @RequestAttribute("merchant") Merchant merchant,
+    @RequestBody @Valid RefundRequest body) {
+    return service.refund(merchant, body.paymentId());
   }
 }

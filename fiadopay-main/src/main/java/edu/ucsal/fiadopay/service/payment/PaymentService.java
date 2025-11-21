@@ -46,9 +46,7 @@ public class PaymentService {
     @Value("${fiadopay.failure-rate}") double failRate;
 
     @Transactional
-    public PaymentResponse createPayment(String auth, String idemKey, PaymentRequest req) {
-
-        var merchant = authService.merchantFromAuth(auth);
+    public PaymentResponse createPayment(Merchant merchant, String idemKey, PaymentRequest req) {
 
         var payment = creator.create(idemKey,merchant.getId(),req);
 
@@ -68,9 +66,7 @@ public class PaymentService {
         );
     }
 
-    public Map<String,Object> refund(String auth, String paymentId){
-        var merchant = authService.merchantFromAuth(auth);
-
+    public Map<String,Object> refund(Merchant merchant, String paymentId){
         var p = creator.getPayments().findById(paymentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
