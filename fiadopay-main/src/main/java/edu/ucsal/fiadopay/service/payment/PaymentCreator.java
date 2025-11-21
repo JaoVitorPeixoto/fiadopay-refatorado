@@ -30,11 +30,11 @@ public class PaymentCreator {
         }
 
         var calc = calculators.stream()
-                .filter(c -> c.supports(req))
-                .findFirst()
-                .orElseThrow();
+            .filter(c -> c.supports(req))
+            .findFirst()
+            .orElseThrow();
 
-    var payment = Payment.builder()
+        var payment = Payment.builder()
             .id("pay_" + UUID.randomUUID().toString().substring(0, 8))
             .merchantId(merchantId)
             .method(req.method().toUpperCase())

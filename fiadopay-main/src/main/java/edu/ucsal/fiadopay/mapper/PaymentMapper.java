@@ -9,13 +9,13 @@ public class PaymentMapper {
 
     public PaymentResponse toResponse(Payment p) {
         return new PaymentResponse(
-                p.getId(),
-                p.getStatus().name(),
-                p.getMethod(),
-                p.getAmount(),
-                p.getInstallments(),
-                p.getMonthlyInterest(),
-                p.getTotalWithInterest()
+            p.getId(),
+            p.getStatus().name(),
+            p.getMethod(),
+            p.getAmount(),
+            p.getInstallments(),
+            p.getMonthlyInterest(),
+            p.getTotalWithInterest()
         );
     }
 }
