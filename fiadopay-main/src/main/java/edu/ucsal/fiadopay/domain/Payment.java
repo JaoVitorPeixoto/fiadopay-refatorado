@@ -6,7 +6,10 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 @Entity
-@Data @NoArgsConstructor @AllArgsConstructor @Builder
+@Data 
+@NoArgsConstructor 
+@AllArgsConstructor 
+@Builder
 @Table(
     indexes = { @Index(columnList="merchantId"), @Index(columnList="status") },
     uniqueConstraints = {

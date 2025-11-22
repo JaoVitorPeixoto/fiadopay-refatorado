@@ -4,18 +4,13 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 import org.springframework.stereotype.Service;
-
+import edu.ucsal.fiadopay.annotation.PaymentMethod;
+import edu.ucsal.fiadopay.domain.PaymentType;
 import edu.ucsal.fiadopay.dto.request.PaymentRequest;
 
 @Service
+@PaymentMethod(types = { PaymentType.CARD })
 public class CardInterestCalculator implements InterestCalculator {
-
-	@Override
-    public boolean supports(PaymentRequest req) {
-        return "CARD".equalsIgnoreCase(req.method()) &&
-               req.installments() != null &&
-               req.installments() > 1;
-    }
 
     @Override
     public BigDecimal calculateTotal(PaymentRequest req) {
