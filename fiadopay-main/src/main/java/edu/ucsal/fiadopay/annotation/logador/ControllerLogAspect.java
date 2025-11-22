@@ -16,14 +16,3 @@ public class ControllerLogAspect extends TemplateLog {
 
 	}
 }
-
-// Qualquer método dentro de classe anotada com @Controller OU @RestController
-//        MethodSignature sig = (MethodSignature) joinPoint.getSignature();
-//
-//        Class<?> controllerClass = sig.getDeclaringType();
-//        String className = controllerClass.getSimpleName();
-//        String methodName = sig.getMethod().getName();
-//
-//        Logger logger = LoggerFactory.getLogger(controllerClass);
-//
-//        logger.info("----- Controller / {}.{}() -----", className, methodName);

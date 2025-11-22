@@ -7,9 +7,9 @@ import org.springframework.stereotype.Component;
 
 @Aspect
 @Component
-public class ServiceLogAspect extends TemplateLog {
+public class EntityLogAspect extends TemplateLog {
 
-	@Before("within(@org.springframework.stereotype.Service *)")
+	@Before("within(@org.springframework.stereotype.Entity *)")
 	public void logService(JoinPoint joinPoint) {
 		log(joinPoint, "Service");
 	}
