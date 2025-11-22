@@ -105,8 +105,8 @@ public class WebhookDeliveryService {
                     ". Attempt " + d.getAttempts() + ". Retrying in " + waitTime + "ms");
                 
                 Thread.sleep(waitTime);
-                
-                tryDeliver(deliveryId);
+
+                executorService.submit(() -> tryDeliver(deliveryId));
             } else if (d.isDelivered()) {
                 System.out.println("[" + Thread.currentThread().getName() + "] Webhook " + deliveryId + " delivered successfully.");
             }
@@ -127,7 +127,7 @@ public class WebhookDeliveryService {
         if (d.getAttempts() < maxAttempts) {
             try {
                 Thread.sleep(retryDelayMs * d.getAttempts());
-                tryDeliver(d.getId());
+                executorService.submit(() -> tryDeliver(d.getId()));
             } catch (InterruptedException ie) {
                 Thread.currentThread().interrupt();
             }
