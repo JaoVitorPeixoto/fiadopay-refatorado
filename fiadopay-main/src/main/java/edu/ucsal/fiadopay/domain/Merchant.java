@@ -4,7 +4,10 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Data @NoArgsConstructor @AllArgsConstructor @Builder
+@Data 
+@NoArgsConstructor
+@AllArgsConstructor 
+@Builder
 public class Merchant {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

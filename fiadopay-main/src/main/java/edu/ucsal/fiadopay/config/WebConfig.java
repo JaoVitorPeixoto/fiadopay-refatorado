@@ -22,7 +22,8 @@ public class WebConfig implements WebMvcConfigurer {
                     "/v3/api-docs/**",
                     "/swagger-resources/**",
                     "/webjars/**",
-                    "/error" // rota interna de erro do Spring
+                    "/error",
+                    "/swagger-ui.html"
                 );
     }
 }

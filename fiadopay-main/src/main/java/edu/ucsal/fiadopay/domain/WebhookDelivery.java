@@ -5,7 +5,10 @@ import lombok.*;
 import java.time.Instant;
 
 @Entity
-@Data @NoArgsConstructor @AllArgsConstructor @Builder
+@Data 
+@NoArgsConstructor 
+@AllArgsConstructor 
+@Builder
 public class WebhookDelivery {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
